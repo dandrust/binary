@@ -1,6 +1,6 @@
 <template>
     <div>
-        Binary Value: <code>{{ binaryString }}b</code><br>
+        Binary Value: <code>{{ displayString }}</code><br>
         <div class="binary-container">
             <Byte v-for="(byte, index) in bytes" v-bind:key="index" v-bind:value="byte.value" />
         </div>
@@ -16,7 +16,7 @@
         components: {
             Byte,
         },
-        props: ['value', 'mode'],
+        props: ['value', 'mode', 'order'],
         data: function () {
             return {
                 bytes: {},
@@ -32,6 +32,13 @@
             },
             modeInt: function () {
                 return parseInt(this.mode);
+            },
+            displayString: function () {
+                let binary = this.binaryString;
+                if (this.order === 'little-endian') {
+                    binary = binary.split('').reverse().join('');
+                }
+                return binary + 'b';
             }
         },
         methods: {

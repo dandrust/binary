@@ -3,9 +3,9 @@
     Value: <input type="text" v-model="value"> <span v-show="valueTooHigh">Value too high!  Select a higher mode!</span> <button v-on:click="doubleValue">Double value!</button>
     <br>
     <br>
-    <Binary v-model="value" v-bind:mode="mode" />
+    <Binary v-model="value" v-bind:mode="mode" v-bind:order="settings.bitOrder" />
     <br>
-    <Hexadecimal v-model="value" v-bind:mode="mode" v-show="settings.showHexadecimal" />
+    <Hexadecimal v-model="value" v-bind:mode="mode" v-bind:order="settings.bitOrder" v-show="settings.showHexadecimal" />
 
     <h1>Settings</h1>
     <h2>Mode</h2>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        Hexadecimal Value: <code>0x{{ hexadecimalString }}</code><br>
+        Hexadecimal Value: <code>{{ displayString }}</code><br>
         <div class="hexadecimal-container">
             <HexadecimalGroup v-for="(group, index) in groups" v-bind:key="index" v-bind:value="group.value" />
         </div>
@@ -16,7 +16,7 @@
         components: {
             HexadecimalGroup,
         },
-        props: ['value', 'mode'],
+        props: ['value', 'mode', 'order'],
         data: function () {
             return {
                 groups: {},
@@ -30,6 +30,13 @@
                 }
                 return hexString;
             },
+            displayString: function () {
+                let hex = this.hexadecimalString;
+                if (this.order === 'little-endian') {
+                    hex = hex.split('').reverse().join('');
+                }
+                return '0x' + hex;
+            }
         },
         methods: {
             updateGroups: function () {
