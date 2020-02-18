@@ -1,65 +1,61 @@
 <template>
   <div id="app" v-bind:class="settings.bitOrder">
-    Value: <input type="text" v-model="value"> <span v-show="valueTooHigh">Value too high!  Select a higher mode!</span> <button v-on:click="doubleValue">Double value!</button>
+    <label>Value:</label>
+    <input type="text"
+           v-model="value">
+    <span v-show="valueTooHigh">Value too high!</span>
+    <button v-on:click="doubleValue"
+            v-show="!valueTooHigh">Double value!</button>
+
     <br>
     <br>
-    <Binary v-model="value" v-bind:mode="mode" v-bind:order="settings.bitOrder" />
+
+    <Binary v-model="value" v-bind:mode="mode" v-bind:order="settings.bitOrder" v-bind:editable="true" v-bind:raw="false" />
+    <br>
+
+    <BitMaskContainer v-bind:any-bit-masks-present="anyBitMasksPresent"
+                      v-bind:bit-mask-output="bitMaskOutput"
+                      v-bind:bitMasks="bitMasks"
+                      v-bind:mode="mode"
+                      v-bind:order="settings.bitOrder"
+                      v-on:add="addBitmask"
+                      v-on:input="updateBitMask(...$event)"
+                      v-on:remove="removeBitMask"/>
+
+
+
+
+
     <br>
     <Hexadecimal v-model="value" v-bind:mode="mode" v-bind:order="settings.bitOrder" v-show="settings.showHexadecimal" />
 
-    <h1>Settings</h1>
-    <h2>Mode</h2>
-    <input type="radio" value="1" v-model="settings.modeIndex">
-    <label>8 bit</label><br>
-    <input type="radio" value="2" v-model="settings.modeIndex">
-    <label>16 bit</label><br>
-    <input type="radio" value="3" v-model="settings.modeIndex">
-    <label>32 bit</label><br>
-    <h2>Bit Order</h2>
-    <input type="radio" value="big-endian" v-model="settings.bitOrder">
-    <label>Big-endian</label><br>
-    <input type="radio" value="little-endian" v-model="settings.bitOrder">
-    <label>Little-endian</label><br>
-    <h2>Hexadecimal</h2>
-    <input type="checkbox" v-model="settings.showHexadecimal">
-    <label>Show hexadecimal values</label>
+    <Settings v-model="settings" />
+    <Future />
 
-    <hr>
-    <h1>Hopes and Dreams</h1>
-    <ul>
-      <li>Add bitmasks and logical operators at runtime</li>
-      <li>Visualize ASCII character codes, escape codes, and bitmasks <a href="https://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html#press-ctrl-q-to-quit" target="_blank">as discussed here</a></li>
-      <li>Visualize IP addresses</li>
-        <ul>
-          <li>Subnet masks</li>
-        </ul>
-      <li>Colors!</li>
-      <li>ASM instruction sets</li>
-      <li>Representing numbers</li>
-        <ul>
-          <li>Visualize twos-complement</li>
-          <li>Visualize signed/unsigned numbers</li>
-          <li>Floating point</li>
-        </ul>
-    </ul>
   </div>
-
 </template>
 
 <script>
 import Hexadecimal from "./components/hexadecimal";
 import Binary from './components/binary'
+import Settings from './components/settings'
+import Future from './components/future'
+import BitMaskContainer from './components/bit-mask-container'
 
 var availableModes = {
   1: 8,
   2: 16,
-  3: 32
+  3: 24,
+  4: 32
 };
 
 export default {
   components: {
-    Hexadecimal,
     Binary,
+    BitMaskContainer,
+    Future,
+    Hexadecimal,
+    Settings
   },
   data: function () {
     return {
@@ -68,7 +64,10 @@ export default {
         modeIndex: 1,
         bitOrder: 'big-endian',
         showHexadecimal: true
-      }
+      },
+      bitMasks: [
+
+      ]
     }
   },
   computed: {
@@ -80,11 +79,38 @@ export default {
     },
     mode: function () {
       return availableModes[this.settings.modeIndex];
+    },
+    anyBitMasksPresent () {
+      return this.bitMasks.length;
+    },
+    bitMaskOutput: function () {
+      return this.bitMasks.reduce(function (acc, bitMask) {
+        switch (bitMask.operator) {
+          case 'and':
+            return acc & parseInt(bitMask.value, 2);
+          case 'or':
+            return acc | parseInt(bitMask.value, 2);
+          case 'xor':
+            return acc ^ parseInt(bitMask.value, 2);
+        }
+      }, this.value)
     }
   },
   methods: {
     doubleValue: function () {
       this.value = 2 * this.value;
+    },
+    addBitmask: function () {
+      this.bitMasks.push({
+        value: "00000000",
+        operator: 'and'
+      })
+    },
+    updateBitMask: function (index, value) {
+      this.bitMasks.splice(index, 1, value);
+    },
+    removeBitMask: function (index) {
+      this.bitMasks.splice(index, 1);
     }
   },
   watch: {

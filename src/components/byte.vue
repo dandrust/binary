@@ -1,6 +1,10 @@
 <template>
     <div class="byte-container">
-        <Bit v-for='bit in bits' v-bind:key='bit.exponent' v-model="bit.value"/>
+        <Bit v-for='bit in bits'
+             v-model="bit.value"
+             v-bind:editable="editable"
+             v-bind:key='bit.exponent'
+             v-on:recalculate="updateValue"/>
     </div>
 </template>
 
@@ -11,7 +15,7 @@
         components: {
             Bit
         },
-        props: ['value'],
+        props: ['value', 'editable'],
         data: function () {
             return {
                 bits: {
@@ -27,11 +31,11 @@
             }
         },
         computed: {
-            decimal: function () {
-                return Object.values(this.bits).reduce(function (sum, bit) {
-                    return sum + (bit.value * (2 ** bit.exponent));
-                }, 0)
-            },
+            localBinaryValue: function () {
+                return Object.values(this.bits).reverse().reduce(function (string, bit) {
+                    return string += String(bit.value);
+                }, '')
+            }
         },
         methods: {
             updateBits: function () {
@@ -43,12 +47,16 @@
                 this.bits.bit5.value = parseInt(this.value[2]);
                 this.bits.bit6.value = parseInt(this.value[1]);
                 this.bits.bit7.value = parseInt(this.value[0]);
+            },
+            updateValue: function () {
+                this.$emit('input', this.localBinaryValue);
+                this.$emit('recalculate');
             }
         },
         watch: {
             value: function () {
                 this.updateBits();
-            }
+            },
         },
         created() {
             this.updateBits()

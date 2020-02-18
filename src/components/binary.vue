@@ -2,7 +2,7 @@
     <div>
         Binary Value: <code>{{ displayString }}</code><br>
         <div class="binary-container">
-            <Byte v-for="(byte, index) in bytes" v-bind:key="index" v-bind:value="byte.value" />
+            <Byte v-for="(byte, index) in bytes" v-bind:key="index" v-model="byte.value" v-bind:editable="editable" v-on:recalculate="updateValue"/>
         </div>
     </div>
 
@@ -16,7 +16,7 @@
         components: {
             Byte,
         },
-        props: ['value', 'mode', 'order'],
+        props: ['value', 'mode', 'order', 'editable', 'raw'],
         data: function () {
             return {
                 bytes: {},
@@ -24,14 +24,17 @@
         },
         computed: {
             binaryString: function () {
-                let binaryString = (this.value >>> 0).toString(2);
-                while (binaryString.length < this.modeInt) {
+                let binaryString;
+                if (this.raw) {
+                    binaryString = this.value;
+                } else {
+                    binaryString = (this.value >>> 0).toString(2);
+                }
+
+                while (binaryString.length < this.mode) {
                     binaryString = "0" + binaryString;
                 }
                 return binaryString;
-            },
-            modeInt: function () {
-                return parseInt(this.mode);
             },
             displayString: function () {
                 let binary = this.binaryString;
@@ -39,15 +42,27 @@
                     binary = binary.split('').reverse().join('');
                 }
                 return binary + 'b';
+            },
+            localBinaryValue: function () {
+                return Object.values(this.bytes).reverse().reduce(function (string, byte) {
+                    return string += String(byte.value);
+                }, '')
+            },
+            localDecimalValue: function() {
+                return parseInt(this.localBinaryValue, 2);
             }
         },
         methods: {
             updateBytes: function () {
-                let byteCount = (this.modeInt / 8);
+                let byteCount = (this.mode / 8);
                 let fullBinary = this.binaryString.split('');
                 for (let i = 0; i < byteCount; i++) {
                     Vue.set(this.bytes, "byte" + i, { value: fullBinary.splice(-8, 8).join('') } );
                 }
+            },
+            updateValue: function () {
+                let updatedValue = this.raw ? this.localBinaryValue : this.localDecimalValue;
+                this.$emit('input', updatedValue);
             }
         },
         watch: {

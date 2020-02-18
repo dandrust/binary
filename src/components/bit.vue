@@ -4,19 +4,24 @@
 
 <script>
     export default {
-        props: ['value'],
-        data: function () {
-            return {};
+        props: ['value', 'editable'],
+        computed: {
+            readOnly: function () {
+                return !this.editable;
+            }
         },
-        computed: {},
         methods: {
             toggleState: function () {
-                if (this.value === 0) {
-                    this.$emit('input', 1);
+                if (this.readOnly) {
+                    return false;
                 } else {
-                    this.$emit('input', 0);
+                    if (this.value === 0) {
+                        this.$emit('input', 1);
+                    } else {
+                        this.$emit('input', 0);
+                    }
+                    this.$emit('recalculate');
                 }
-                this.$emit('recalculate');
             },
         }
     }
